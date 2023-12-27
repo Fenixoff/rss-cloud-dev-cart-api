@@ -15,16 +15,31 @@ export class CartApiStack extends Stack {
     const cartApitHandler = new nodejs.NodejsFunction(this, 'CartApiHandler', {
       entry: 'dist/main.js',
       runtime: Runtime.NODEJS_20_X,
+      environment: {
+        DB_URL: process.env.DB_URL,
+      },
+      timeout: Duration.seconds(10),
     });
 
     const httpApi = new apigwv2.HttpApi(this, 'CartApi', {
       corsPreflight: {
-        allowMethods: [apigwv2.CorsHttpMethod.GET, apigwv2.CorsHttpMethod.HEAD],
+        allowMethods: [apigwv2.CorsHttpMethod.ANY],
         allowOrigins: ['*'],
-        allowHeaders: ['authorization'],
+        allowHeaders: ['authorization', 'content-type'],
         maxAge: Duration.days(1),
       },
-      defaultIntegration: new HttpLambdaIntegration(
+    });
+
+    httpApi.addRoutes({
+      path: '/{proxy+}',
+      methods: [
+        apigwv2.HttpMethod.GET,
+        apigwv2.HttpMethod.POST,
+        apigwv2.HttpMethod.PUT,
+        apigwv2.HttpMethod.DELETE,
+        apigwv2.HttpMethod.PATCH,
+      ],
+      integration: new HttpLambdaIntegration(
         'CartApiIntegration',
         cartApitHandler,
       ),
