@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import serverlessExpress from '@codegenie/serverless-express';
 
 import { AppModule } from './app.module';
+import { AppDataSource } from './data-source';
 
 const port = process.env.PORT || 4000;
 
@@ -15,6 +16,15 @@ async function bootstrap(): Promise<Handler> {
 
   app.use(helmet());
   await app.init();
+
+  await AppDataSource.initialize()
+    .then(() => {
+      console.log('Data Source has been initialized!');
+    })
+    .catch((err) => {
+      console.error('Error during Data Source initialization', err);
+      throw err;
+    });
 
   const expressApp = app.getHttpAdapter().getInstance();
   return serverlessExpress({ app: expressApp });

@@ -18,7 +18,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "deploy": "nest build --webpack && cdk deploy"
   },
   "dependencies": {
     "@codegenie/serverless-express": "^4.13.0",
@@ -34,8 +35,10 @@
     "passport-http": "^0.3.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
-    "reflect-metadata": "^0.1.13",
+    "pg": "^8.11.3",
+    "reflect-metadata": "^0.1.14",
     "rxjs": "^7.8.1",
+    "typeorm": "^0.3.17",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
@@ -45,7 +48,7 @@
     "@types/aws-lambda": "^8.10.130",
     "@types/express": "^4.17.17",
     "@types/jest": "29.5.2",
-    "@types/node": "^20.3.1",
+    "@types/node": "^20.10.5",
     "@types/passport-jwt": "^3.0.8",
     "@types/passport-local": "^1.0.35",
     "@types/source-map-support": "^0.5.10",
