@@ -1,7 +1,7 @@
 {
   "app": "npx ts-node --prefer-ts-exts bin/cart-api.ts",
   "watch": {
-    "include": ["**"],
+    "include": ["dist/main.js"],
     "exclude": [
       "README.md",
       "cdk*.json",
