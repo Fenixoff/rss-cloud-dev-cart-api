@@ -48,7 +48,7 @@ export class CartController {
   }
 
   // @UseGuards(JwtAuthGuard)
-  @Post('order')
+  @Put('order')
   async checkout(@Req() req: AppRequest, @Body() body) {
     const requestItems = body.items;
     const requestAddress = body.address;
