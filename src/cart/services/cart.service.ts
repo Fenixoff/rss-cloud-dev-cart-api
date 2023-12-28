@@ -1,16 +1,17 @@
 import { Injectable } from '@nestjs/common';
 
 import { Cart, CartItem } from '../models';
+import { User } from 'src/users';
 
 @Injectable()
 export class CartService {
   async findByUserId(userId: string): Promise<Cart> {
-    return Cart.findOneBy({ user_id: userId });
+    return Cart.findOneBy({ user: { id: userId } });
   }
 
   async createByUserId(userId: string) {
     const userCart = new Cart();
-    userCart.user_id = userId;
+    userCart.user = { id: userId } as User;
     userCart.items = [];
 
     return Cart.save(userCart);
@@ -41,11 +42,14 @@ export class CartService {
   async updateUserCart(userId: string, item: CartItem): Promise<Cart> {
     const cart = await Cart.findOne({
       select: { id: true },
-      where: { user_id: userId },
+      where: { user: { id: userId } },
     });
 
     if (item.count === 0) {
-      await CartItem.delete({ cart, product: { id: item.product.id } });
+      await CartItem.delete({
+        cart: { id: cart.id },
+        product: { id: item.product.id },
+      });
     } else {
       item.cart = cart;
       await CartItem.upsert(item, ['cart', 'product.id']);

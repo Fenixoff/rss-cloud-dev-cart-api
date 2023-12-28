@@ -1,3 +1,4 @@
+import { User } from 'src/users';
 import {
   BaseEntity,
   Column,
@@ -22,7 +23,7 @@ interface ICartItem {
 
 interface ICart {
   id: string;
-  user_id: string;
+  user: User;
   status: CartStatuses;
   created_at: string;
   updated_at: string;
@@ -58,8 +59,10 @@ export class Cart extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('uuid')
-  user_id: string;
+  @ManyToOne(() => User, {
+    eager: true,
+  })
+  user: User;
 
   @CreateDateColumn()
   created_at: string;

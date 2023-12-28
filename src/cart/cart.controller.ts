@@ -7,16 +7,17 @@ import {
   Req,
   Post,
   UseGuards,
-  HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 
-import { OrderService } from '../order';
+import { Order, OrderService } from '../order';
 import { AppRequest, getUserIdFromRequest } from '../shared';
 
 import { calculateCartTotal } from './models-rules';
 import { CartService } from './services';
 import { BasicAuthGuard } from 'src/auth';
-import { Cart, CartItem } from './models';
+import { Cart, CartItem, CartStatuses } from './models';
+import { AppDataSource } from 'src/data-source';
 
 @Controller('api/profile/cart')
 @UseGuards(BasicAuthGuard)
@@ -47,32 +48,38 @@ export class CartController {
   }
 
   // @UseGuards(JwtAuthGuard)
-  @Post('checkout')
-  async checkout(@Req() req: AppRequest, @Body() body: Cart) {
-    const userId = getUserIdFromRequest(req);
-    const cart = await this.cartService.findByUserId(userId);
+  @Post('order')
+  async checkout(@Req() req: AppRequest, @Body() body) {
+    const requestItems = body.items;
+    const requestAddress = body.address;
 
-    if (!(cart && cart.items.length)) {
-      const statusCode = HttpStatus.BAD_REQUEST;
-      req.statusCode = statusCode;
-
-      return {
-        statusCode,
-        message: 'Cart is empty',
-      };
+    if (!(requestItems && requestAddress)) {
+      throw new BadRequestException('Bad request');
     }
 
-    const { id: cartId, items } = cart;
-    const total = calculateCartTotal(cart);
-    const order = this.orderService.create({
-      ...body, // TODO: validate and pick only necessary data
-      userId,
-      cartId,
-      items,
-      total,
-    });
-    this.cartService.removeByUserId(userId);
+    if (!requestItems.length) {
+      throw new BadRequestException('Cart is empty');
+    }
 
-    return order;
+    const userId = getUserIdFromRequest(req);
+    return AppDataSource.transaction(async (transactionalEntityManager) => {
+      const cart = await transactionalEntityManager.findOneBy(Cart, {
+        user: { id: userId },
+      });
+
+      cart.items = requestItems;
+      cart.status = CartStatuses.ORDERED;
+      await transactionalEntityManager.save(cart);
+
+      const total = calculateCartTotal(cart);
+      const order = new Order();
+
+      order.user = cart.user;
+      order.cart = cart;
+      order.total = total;
+      order.delivery = requestAddress;
+
+      return transactionalEntityManager.save(order);
+    });
   }
 }

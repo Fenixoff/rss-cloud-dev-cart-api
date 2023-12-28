@@ -1,39 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { v4 } from 'uuid';
 
 import { Order } from '../models';
 
 @Injectable()
 export class OrderService {
-  private orders: Record<string, Order> = {}
-
-  findById(orderId: string): Order {
-    return this.orders[ orderId ];
+  async findById(id: string): Promise<Order> {
+    return Order.findOneBy({ id });
   }
 
-  create(data: any) {
-    const id = v4()
-    const order = {
-      ...data,
-      id,
-      status: 'inProgress',
-    };
-
-    this.orders[ id ] = order;
-
-    return order;
+  async create(data: Partial<Order>) {
+    return Order.save(data);
   }
 
-  update(orderId, data) {
-    const order = this.findById(orderId);
+  async update(id: string, data: Partial<Order>) {
+    const order = await this.findById(id);
 
     if (!order) {
       throw new Error('Order does not exist.');
     }
 
-    this.orders[ orderId ] = {
-      ...data,
-      id: orderId,
-    }
+    return Order.merge(order, data).save();
   }
 }
