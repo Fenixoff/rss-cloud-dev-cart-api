@@ -67,16 +67,20 @@ export class CartController {
         user: { id: userId },
       });
 
-      cart.items = requestItems;
-      cart.status = CartStatuses.ORDERED;
-      await transactionalEntityManager.save(cart);
+      //      cart.items = requestItems;
+      //      cart.status = CartStatuses.ORDERED;
+      await transactionalEntityManager.update(
+        Cart,
+        { id: cart.id },
+        { status: CartStatuses.ORDERED },
+      );
 
-      const total = calculateCartTotal(cart);
+      // const total = calculateCartTotal(cart);
       const order = new Order();
 
       order.user = cart.user;
       order.cart = cart;
-      order.total = total;
+      // order.total = total;
       order.delivery = requestAddress;
 
       return transactionalEntityManager.save(order);

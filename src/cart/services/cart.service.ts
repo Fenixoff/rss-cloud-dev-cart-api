@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
-import { Cart, CartItem } from '../models';
+import { Cart, CartItem, CartStatuses } from '../models';
 import { User } from 'src/users';
 
 @Injectable()
 export class CartService {
   async findByUserId(userId: string): Promise<Cart> {
-    return Cart.findOneBy({ user: { id: userId } });
+    return Cart.findOneBy({ user: { id: userId }, status: CartStatuses.OPEN });
   }
 
   async createByUserId(userId: string) {

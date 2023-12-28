@@ -5,7 +5,7 @@ import {
   Column,
   Entity,
   JoinColumn,
-  OneToMany,
+  ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -22,8 +22,7 @@ export class Order extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id?: string;
 
-  @OneToMany(() => Order, (order) => order.user)
-  @Column('uuid', { name: 'user_id' })
+  @ManyToOne(() => User)
   user: User;
 
   @OneToOne(() => Cart)
@@ -45,12 +44,12 @@ export class Order extends BaseEntity {
     address: any;
   };
 
-  @Column()
+  @Column({ nullable: true })
   comments?: string;
 
   @Column({ type: 'enum', enum: OrderStatuses, default: OrderStatuses.PLACED })
   status: OrderStatuses;
 
-  @Column()
+  @Column({ nullable: true })
   total: number;
 }
