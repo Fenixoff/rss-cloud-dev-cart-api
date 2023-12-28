@@ -1,7 +1,21 @@
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-export interface User {
+@Entity()
+export class User extends BaseEntity {
+  constructor(partial?: Partial<User>) {
+    super();
+    Object.assign(this, partial);
+  }
+
+  @PrimaryGeneratedColumn('uuid')
   id?: string;
+
+  @Column()
   name: string;
+
+  @Column({ nullable: true })
   email?: string;
+
+  @Column()
   password?: string;
 }
