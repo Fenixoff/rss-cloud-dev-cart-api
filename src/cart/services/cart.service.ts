@@ -1,31 +1,24 @@
 import { Injectable } from '@nestjs/common';
 
-import { v4 } from 'uuid';
-
-import { Cart } from '../models';
+import { Cart, CartItem, CartStatuses } from '../models';
+import { User } from 'src/users';
 
 @Injectable()
 export class CartService {
-  private userCarts: Record<string, Cart> = {};
-
-  findByUserId(userId: string): Cart {
-    return this.userCarts[ userId ];
+  async findByUserId(userId: string): Promise<Cart> {
+    return Cart.findOneBy({ user: { id: userId }, status: CartStatuses.OPEN });
   }
 
-  createByUserId(userId: string) {
-    const id = v4();
-    const userCart = {
-      id,
-      items: [],
-    };
+  async createByUserId(userId: string) {
+    const userCart = new Cart();
+    userCart.user = { id: userId } as User;
+    userCart.items = [];
 
-    this.userCarts[ userId ] = userCart;
-
-    return userCart;
+    return Cart.save(userCart);
   }
 
-  findOrCreateByUserId(userId: string): Cart {
-    const userCart = this.findByUserId(userId);
+  async findOrCreateByUserId(userId: string): Promise<Cart> {
+    const userCart = await this.findByUserId(userId);
 
     if (userCart) {
       return userCart;
@@ -34,22 +27,33 @@ export class CartService {
     return this.createByUserId(userId);
   }
 
-  updateByUserId(userId: string, { items }: Cart): Cart {
-    const { id, ...rest } = this.findOrCreateByUserId(userId);
+  async updateByUserId(userId: string, { items }: Cart): Promise<Cart> {
+    const cart = await this.findOrCreateByUserId(userId);
 
-    const updatedCart = {
-      id,
-      ...rest,
-      items: [ ...items ],
+    cart.items = items;
+
+    return cart.save();
+  }
+
+  async removeByUserId(userId: string): Promise<Cart> {
+    return (await this.findByUserId(userId)).remove();
+  }
+
+  async updateUserCart(userId: string, item: CartItem): Promise<Cart> {
+    const cart = await Cart.findOne({
+      select: { id: true },
+      where: { user: { id: userId } },
+    });
+
+    if (item.count === 0) {
+      await CartItem.delete({
+        cart: { id: cart.id },
+        product: { id: item.product.id },
+      });
+    } else {
+      item.cart = cart;
+      await CartItem.upsert(item, ['cart', 'product.id']);
     }
-
-    this.userCarts[ userId ] = { ...updatedCart };
-
-    return { ...updatedCart };
+    return Cart.findOneBy({ id: cart.id });
   }
-
-  removeByUserId(userId): void {
-    this.userCarts[ userId ] = null;
-  }
-
 }
