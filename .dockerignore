@@ -1,0 +1,16 @@
+# Generated folders and files
+**/node_modules/
+**/dist/
+**/cdk.out/
+npm-debug.log
+
+# Testing reports
+.coverage
+.coverage.*
+
+# Development history isn't needed for build
+.git/
+
+# Local env may contain sensitive information
+.env
+.aws
