@@ -1,9 +1,7 @@
 import { CfnOutput, Duration, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
+import { HttpUrlIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 
-import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
 
 import 'dotenv/config';
@@ -11,15 +9,6 @@ import 'dotenv/config';
 export class CartApiStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
-
-    const cartApitHandler = new nodejs.NodejsFunction(this, 'CartApiHandler', {
-      entry: 'dist/main.js',
-      runtime: Runtime.NODEJS_20_X,
-      environment: {
-        DB_URL: process.env.DB_URL,
-      },
-      timeout: Duration.seconds(10),
-    });
 
     const httpApi = new apigwv2.HttpApi(this, 'CartApi', {
       corsPreflight: {
@@ -39,9 +28,9 @@ export class CartApiStack extends Stack {
         apigwv2.HttpMethod.DELETE,
         apigwv2.HttpMethod.PATCH,
       ],
-      integration: new HttpLambdaIntegration(
+      integration: new HttpUrlIntegration(
         'CartApiIntegration',
-        cartApitHandler,
+        `${process.env.API_URL}/{proxy}`,
       ),
     });
 
