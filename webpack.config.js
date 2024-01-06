@@ -18,7 +18,7 @@ module.exports = (options, webpack) => {
     ...options,
     mode: 'production',
     target: 'node',
-    entry: 'src/main.lambda.ts',
+    entry: 'src/main.ts',
     externals: [],
     optimization: {
       minimizer: [

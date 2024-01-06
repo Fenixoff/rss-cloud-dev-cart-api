@@ -40,10 +40,7 @@ export class CartService {
   }
 
   async updateUserCart(userId: string, item: CartItem): Promise<Cart> {
-    const cart = await Cart.findOne({
-      select: { id: true },
-      where: { user: { id: userId } },
-    });
+    const cart = await this.findOrCreateByUserId(userId);
 
     if (item.count === 0) {
       await CartItem.delete({
